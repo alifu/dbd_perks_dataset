@@ -1,0 +1,7 @@
+dbd_perks_dataset/
+DBDPerkClassifier.mlpackage
+processed/
+image_test/
+dbd_perk_labels.json
+dbd_perks_model.h5
+dbd_perks_model.keras
