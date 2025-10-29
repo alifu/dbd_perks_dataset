@@ -6,6 +6,7 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from PIL import Image
 from rembg import remove
+import cv2
 
 # ==========================
 # CONFIG
@@ -41,6 +42,34 @@ if os.path.exists(LABEL_JSON):
 # ==========================
 # FUNCTIONS
 # ==========================
+def preprocess_perk_image(path, target_size=(128, 128)):
+    img = cv2.imread(path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    
+    # Convert to HSV to isolate purple background
+    hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    
+    # Purple color range (tuned for DBD icons)
+    lower_purple = np.array([120, 50, 50])
+    upper_purple = np.array([160, 255, 255])
+    
+    mask = cv2.inRange(hsv, lower_purple, upper_purple)
+    
+    # Invert mask (keep the white icon)
+    mask_inv = cv2.bitwise_not(mask)
+    
+    # Apply mask to keep only icon
+    icon = cv2.bitwise_and(img, img, mask=mask_inv)
+    
+    # Optional: find bounding box of icon area
+    coords = cv2.findNonZero(mask_inv)
+    x, y, w, h = cv2.boundingRect(coords)
+    cropped = icon[y:y+h, x:x+w]
+    
+    # Resize to model input
+    cropped = cv2.resize(cropped, target_size)
+    return Image.fromarray(cropped)
+
 def remove_background(img: Image.Image, save_path: str):
     """
     Remove background using rembg and save the processed image.
@@ -84,7 +113,7 @@ filename = os.path.basename(input_path)
 processed_path = os.path.join(PROCESSED_DIR, filename)
 
 # Remove background and save
-img = Image.open(input_path)
+img = preprocess_perk_image(input_path, target_size=IMG_SIZE)
 img_no_bg = remove_background(img, save_path=processed_path)
 
 # Predict

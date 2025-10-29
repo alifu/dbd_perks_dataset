@@ -102,6 +102,95 @@ python3 quick_test_model.py
 
 ---
 
+## 🧠 Model Conversion & Visualization
+
+This section explains how to convert your fine-tuned Dead by Daylight perk classifier to CoreML for iOS apps, and how to visualize Grad-CAM heatmaps to understand the model’s predictions.
+
+### 🍏 Convert to CoreML (`convert_tuned_to_coreml.py`)
+
+After you have fine-tuned your model (tuned_dbd_perks_model.keras), you can convert it into a CoreML .mlpackage model for integration into your iOS app.
+
+Usage
+```bash
+python convert_tuned_to_coreml.py
+```
+
+Script Overview
+
+- Loads your fine-tuned .keras model.
+- Converts it to a .mlpackage (the modern CoreML format).
+- Embeds metadata such as author, license, and JSON label mapping.
+- Saves the result as DBDPerkClassifier.mlpackage.
+
+Output
+```bash
+✅ CoreML model saved as DBDPerkClassifier.mlpackage
+```
+
+
+You can now import this file into Xcode and use it via VNCoreMLModel or Swift’s CoreML framework for on-device inference.
+
+## 🔥 Grad-CAM Visualization (visualize_gradcam.py)
+
+Grad-CAM helps you see which regions of a perk image the model focuses on during classification — perfect for debugging or improving dataset accuracy.
+
+Usage
+```bash
+python visualize_gradcam.py path/to/perk_image.png
+```
+
+Example
+```bash
+python visualize_gradcam.py samples/a_nurse_calling.png
+```
+
+What it does
+- Loads your trained model (dbd_perks_model.keras or fine-tuned one).
+- Preprocesses the input image and predicts its class.
+- Displays the top 5 most likely perks with confidence percentages.
+- Generates a Grad-CAM overlay to highlight image regions influencing the decision.
+
+Output Example
+```bash
+🎯 Top 5 Predictions:
+ 1. A Nurse's Calling             92.34%
+ 2. Dark Theory                   4.28%
+ 3. Kindred                       1.65%
+ 4. Empathy                       0.87%
+ 5. Bond                           0.42%
+
+🔥 Using top prediction for Grad-CAM: A Nurse's Calling
+🧠 Using last conv layer: conv2d_94
+✅ Saved Grad-CAM result to processed/a_nurse_calling_gradcam.png
+```
+
+It also displays side-by-side:
+
+- The original perk image
+- The Grad-CAM overlay showing attention regions
+(red = high importance, blue = low importance)
+
+Example Output
+
+The script automatically saves:
+```bash
+processed/<filename>_gradcam.png
+```
+
+## ⚙️ Requirements
+
+Ensure you have these Python dependencies installed:
+```bash
+pip install tensorflow coremltools opencv-python matplotlib pillow numpy
+```
+
+Optional (for fine-tuning and dataset management):
+```bash
+pip install scikit-learn
+```
+
+---
+
 ## 🙋 Contact & Contributions
 
 This project was created by **Annur Alif Ramadhoni**.
