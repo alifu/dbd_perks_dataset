@@ -1,0 +1,117 @@
+# DBD Perks Dataset & Classifier  
+*A machine‑learning pipeline for classifying perks in Dead by Daylight*
+
+This repository contains a full workflow to:
+
+- scrape perk icons & descriptions  
+- build a dataset (raw + augmented images)  
+- train a CNN classifier  
+- convert the model to CoreML for iOS/macOS use  
+- run quick tests for inference  
+
+> **Note:** This project is for educational purposes only.
+
+---
+
+## 📁 Repository Structure
+
+```
+dbd_perks_dataset/
+│
+├── raw/ ← Original perk icon images (1 sample per perk)
+│ ├── File:IconPerks_aceInTheHole.png
+│ ├── File:IconPerks_barbecueAndChilli.png
+│ └── …
+│
+├── augmented/ ← Augmented image folders for each perk
+│ ├── File:IconPerks_aceInTheHole/
+│ │ ├── File:IconPerks_aceInTheHole_0.png
+│ │ └── …
+│ ├── File:IconPerks_barbecueAndChilli/
+│ │ ├── File:IconPerks_barbecueAndChilli_0.png
+│ │ └── …
+│
+├── metadata.json ← JSON mapping perk keys → name, description, page URL
+├── dbd_perk_labels.json ← JSON mapping classifier labels → display name + description
+│
+├── train_dbd_perks_model.py ← Script to train the Keras model
+├── convert_to_core_ml_model.py ← Script to convert trained model to CoreML
+├── quick_test_model.py ← Script to quickly test inference on a single image
+│
+└── build_dbd_perk_dataset_api.py ← Web‑scraper to build dataset from the wiki
+```
+
+---
+
+## 🛠 Workflow
+
+### 1. Build the dataset  
+Use the scraper script (e.g. `build_dbd_perk_dataset_api.py`) to download perk icon images and descriptions from the Dead by Daylight Fandom wiki, then run the augmentation script to generate additional training images (~50 per perk).
+
+### 2. Train the model  
+Use `train_dbd_perks_model.py`. This script:
+- loads the augmented images  
+- splits into training / validation sets  
+- uses a pre‑trained model (e.g. MobileNetV2) for transfer‑learning  
+- fine‑tunes the model  
+- saves the model (e.g. `dbd_perks_model.keras`)  
+- produces a label‑map JSON (`dbd_perk_labels.json`)
+
+### 3. Convert to CoreML  
+Use `convert_to_core_ml_model.py`. This script:
+- loads the saved Keras model  
+- optionally patches compatibility issues  
+- converts to a CoreML format (`.mlpackage` for newer iOS/macOS or `.mlmodel` for older)  
+- embeds metadata (labels + descriptions)  
+- saves the output (e.g. `DBDPerkClassifier.mlpackage`)
+
+### 4. Quick test / Inference  
+Use `quick_test_model.py` to run inference on a sample perk icon from `raw/`.  
+It loads the model, finds a sample image, preprocesses it (resize + normalize), runs prediction, and prints the top result with confidence + optional description.
+
+---
+
+## ⚠️ Compatibility & Notes
+
+- *TensorFlow / Keras versions:*  
+  Due to compatibility issues, it’s recommended to use TensorFlow **2.12.0** with its bundled Keras.  
+  Newer TensorFlow versions (2.15+) may require manual patches for CoreML conversion.  
+- *CoreML format:*  
+  - For iOS 15 / macOS 12 and newer: use `.mlpackage` (ML Program format)  
+  - For older systems: specify `convert_to="neuralnetwork"` and save as `.mlmodel`.  
+- *Dataset details:*  
+  - One raw icon image per perk  
+  - ~50 augmented images per perk folder  
+  - Metadata includes perk name, image file reference, description, and wiki page URL  
+- This project is **for learning purposes only**. Please respect the rights and usage policies of the original game and wiki content.
+
+---
+
+## 📋 Example Usage (Terminal)
+
+```bash
+# 1) Train the model
+python3 train_dbd_perks_model.py
+
+# 2) Convert the model to CoreML
+python3 convert_to_core_ml_model.py
+
+# 3) Run a quick test
+python3 quick_test_model.py
+```
+
+---
+
+## 🙋 Contact & Contributions
+
+This project was created by **Annur Alif Ramadhoni**.
+Feel free to open issues or submit pull requests for improvements (e.g., support for new perks, mobile‑app integration, further model optimization).
+
+---
+
+## 🎯 License & Attribution
+
+The model, scripts, and dataset in this repository are provided with MIT License (see LICENSE file).
+
+Icon images and descriptions are sourced from the [Dead by Daylight Wiki (Fandom)](https://deadbydaylight.fandom.com).
+Please refer to the original wiki for usage rights and attribution.
