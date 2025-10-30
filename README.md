@@ -38,15 +38,20 @@ dbd_perks_dataset/
 ├── convert_to_core_ml_model.py ← Script to convert trained model to CoreML
 ├── quick_test_model.py ← Script to quickly test inference on a single image
 │
-└── build_dbd_perk_dataset_api.py ← Web‑scraper to build dataset from the wiki
+└── build_dbd_perk_dataset.py ← Web‑scraper to build dataset from the wiki
 ```
+
+### Roadmap
+The model consumed by this [iOS Project](https://github.com/alifu/DBD-Perks)
+
+<img src="./roadmap.png" alt="preview" width="500"/>
 
 ---
 
 ## 🛠 Workflow
 
 ### 1. Build the dataset  
-Use the scraper script (e.g. `build_dbd_perk_dataset_api.py`) to download perk icon images and descriptions from the Dead by Daylight Fandom wiki, then run the augmentation script to generate additional training images (~50 per perk).
+Use the scraper script (e.g. `build_dbd_perk_dataset.py`) to download perk icon images and descriptions from the Dead by Daylight Fandom wiki, then run the augmentation script to generate additional training images (~50 per perk).
 
 ### 2. Train the model  
 Use `train_dbd_perks_model.py`. This script:
@@ -90,13 +95,16 @@ It loads the model, finds a sample image, preprocesses it (resize + normalize), 
 ## 📋 Example Usage (Terminal)
 
 ```bash
-# 1) Train the model
+# 1) Scrap the dataset from Fandom WIKI
+python3 build_dbd_perk_dataset.py
+
+# 2) Train the model
 python3 train_dbd_perks_model.py
 
-# 2) Convert the model to CoreML
+# 3) Convert the model to CoreML
 python3 convert_to_core_ml_model.py
 
-# 3) Run a quick test
+# 3.1) Run a quick test
 python3 quick_test_model.py
 ```
 
@@ -112,7 +120,7 @@ After you have fine-tuned your model (tuned_dbd_perks_model.keras), you can conv
 
 Usage
 ```bash
-python convert_tuned_to_coreml.py
+python3 convert_tuned_to_coreml.py
 ```
 
 Script Overview
@@ -120,11 +128,11 @@ Script Overview
 - Loads your fine-tuned .keras model.
 - Converts it to a .mlpackage (the modern CoreML format).
 - Embeds metadata such as author, license, and JSON label mapping.
-- Saves the result as DBDPerkClassifier.mlpackage.
+- Saves the result as DBDPerkClassifier_Tuned.mlpackage.
 
 Output
 ```bash
-✅ CoreML model saved as DBDPerkClassifier.mlpackage
+✅ CoreML model saved as DBDPerkClassifier_Tuned.mlpackage
 ```
 
 
@@ -136,12 +144,12 @@ Grad-CAM helps you see which regions of a perk image the model focuses on during
 
 Usage
 ```bash
-python visualize_gradcam.py path/to/perk_image.png
+python3 visualize_gradcam.py path/to/perk_image.png
 ```
 
 Example
 ```bash
-python visualize_gradcam.py samples/a_nurse_calling.png
+python3 visualize_gradcam.py samples/a_nurse_calling.png
 ```
 
 What it does

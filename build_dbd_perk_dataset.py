@@ -1,5 +1,5 @@
 import os, requests, json, time, random, re
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 from PIL import Image, ImageEnhance, ImageOps, ImageFilter
 
 # ---- CONFIG ----
@@ -47,7 +47,11 @@ def get_description_perks():
             perk_url = "https://deadbydaylight.fandom.com" + perk_link_tag["href"] if perk_link_tag else None
 
             # 3️⃣ Description
-            description = cols[3].get_text(separator="\n", strip=True)
+            for tag in cols[3].find_all(["div", "p", "li"]):
+                tag.insert_before(NavigableString("\n"))
+
+            description = cols[3].get_text()
+
 
             perks.append({
                 "name": perk_name,

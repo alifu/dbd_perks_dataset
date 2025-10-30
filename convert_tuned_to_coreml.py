@@ -26,10 +26,23 @@ if not hasattr(tf.keras.Model, "_get_save_spec"):
 # ========= CONVERT TO COREML =========
 print("🍏 Converting to CoreML (ML Program format)…")
 
+if os.path.exists(LABEL_JSON):
+    with open(LABEL_JSON, "r") as f:
+        label_map = json.load(f)
+    labels = list(label_map.keys())
+else:
+    labels = []
+    print("⚠️ No label file found. Using numeric class indices.")
+
+print("🍏 Converting to CoreML (with classifier head)…")
+
+classifier_config = ct.ClassifierConfig(class_labels=labels) if labels else None
+
 mlmodel = ct.convert(
     model,
     source="tensorflow",
-    convert_to="mlprogram",  # ✅ modern CoreML model format
+    convert_to="mlprogram",
+    classifier_config=classifier_config,
     inputs=[
         ct.ImageType(
             name="input_1",
