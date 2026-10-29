@@ -48,6 +48,27 @@ The model consumed by this [iOS Project](https://github.com/alifu/DBD-Perks)
 
 ---
 
+## 🕷️ Crawler v2 (`crawler/`)
+
+Builds one clean, versioned `data/perks.json` (name, role, owner, description, flavor, icon) straight from the
+Fandom *Perks* page tables — icon and name come from the same row, so nothing is guessed from file names.
+
+```bash
+pip install -r requirements-dev.txt
+python3 -m crawler                  # fetch, validate, write data/perks.json, download data/icons/<id>.png
+python3 -m crawler --offline        # reuse cache/Perks.json
+python3 -m crawler.validate data/perks.json
+python3 -m crawler.legacy_labels    # map the v1 model labels to the new ids
+python3 -m pytest --cov=crawler
+```
+
+- Polite: identifiable User-Agent, `maxlag`, ≥ 1 s between API calls, retries with backoff, unchanged wiki revisions are skipped.
+- Safe: JSON-schema validation, duplicate-id check, and a guard that aborts if the perk count drops more than 5 %.
+- Descriptions with a "based on Patch X" banner keep the text and record the patch in `descriptionPatch`.
+- `owner` is empty for generic (teachable) perks.
+
+---
+
 ## 🛠 Workflow
 
 ### 1. Build the dataset  
