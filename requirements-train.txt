@@ -1,0 +1,9 @@
+torch>=2.7
+torchvision>=0.22
+coremltools>=8
+numpy
+opencv-python
+pillow
+certifi
+pytest
+pytest-cov

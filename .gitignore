@@ -15,3 +15,8 @@ data/icons/
 .pytest_cache/
 .coverage
 __pycache__/
+
+# Model v2 build outputs (weights and Core ML package are built locally; labels/metrics are committed)
+models/v2/*.pt
+models/v2/*.mlpackage
+real_photos/

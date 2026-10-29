@@ -1,0 +1,140 @@
+{
+  "device": "mps",
+  "classes": 279,
+  "validation": {
+    "top1": 1.0,
+    "top3": 1.0,
+    "samples": 2232,
+    "worstClasses": [
+      {
+        "id": "a_nurses_calling",
+        "accuracy": 1.0
+      },
+      {
+        "id": "ace_in_the_hole",
+        "accuracy": 1.0
+      },
+      {
+        "id": "adrenaline",
+        "accuracy": 1.0
+      },
+      {
+        "id": "aftercare",
+        "accuracy": 1.0
+      },
+      {
+        "id": "agitation",
+        "accuracy": 1.0
+      },
+      {
+        "id": "alert",
+        "accuracy": 1.0
+      },
+      {
+        "id": "alien_instinct",
+        "accuracy": 1.0
+      },
+      {
+        "id": "all_shaking_thunder",
+        "accuracy": 1.0
+      },
+      {
+        "id": "any_means_necessary",
+        "accuracy": 1.0
+      },
+      {
+        "id": "appraisal",
+        "accuracy": 1.0
+      },
+      {
+        "id": "autodidact",
+        "accuracy": 1.0
+      },
+      {
+        "id": "awakened_awareness",
+        "accuracy": 1.0
+      },
+      {
+        "id": "babysitter",
+        "accuracy": 1.0
+      },
+      {
+        "id": "background_player",
+        "accuracy": 1.0
+      },
+      {
+        "id": "balanced_landing",
+        "accuracy": 1.0
+      }
+    ],
+    "topConfusions": []
+  },
+  "hardTest": {
+    "top1": 1.0,
+    "top3": 1.0,
+    "samples": 2232,
+    "worstClasses": [
+      {
+        "id": "a_nurses_calling",
+        "accuracy": 1.0
+      },
+      {
+        "id": "ace_in_the_hole",
+        "accuracy": 1.0
+      },
+      {
+        "id": "adrenaline",
+        "accuracy": 1.0
+      },
+      {
+        "id": "aftercare",
+        "accuracy": 1.0
+      },
+      {
+        "id": "agitation",
+        "accuracy": 1.0
+      },
+      {
+        "id": "alert",
+        "accuracy": 1.0
+      },
+      {
+        "id": "alien_instinct",
+        "accuracy": 1.0
+      },
+      {
+        "id": "all_shaking_thunder",
+        "accuracy": 1.0
+      },
+      {
+        "id": "any_means_necessary",
+        "accuracy": 1.0
+      },
+      {
+        "id": "appraisal",
+        "accuracy": 1.0
+      },
+      {
+        "id": "autodidact",
+        "accuracy": 1.0
+      },
+      {
+        "id": "awakened_awareness",
+        "accuracy": 1.0
+      },
+      {
+        "id": "babysitter",
+        "accuracy": 1.0
+      },
+      {
+        "id": "background_player",
+        "accuracy": 1.0
+      },
+      {
+        "id": "balanced_landing",
+        "accuracy": 1.0
+      }
+    ],
+    "topConfusions": []
+  }
+}

@@ -69,6 +69,28 @@ python3 -m pytest --cov=crawler
 
 ---
 
+## 🚀 Model v2 (PyTorch, trains on the Apple GPU)
+
+v2 replaces the Keras pipeline. Instead of a folder of pre-augmented images it **generates training images on the fly**:
+the transparent wiki icon is placed on a random rarity-coloured background, then degraded like a phone photo of a screen
+(perspective, low resolution, blur, colour/white-balance shifts, glare, moiré, noise, JPEG). Labels are the perk ids from `data/perks.json`.
+
+```bash
+pip install -r requirements-train.txt
+export SSL_CERT_FILE=$(python3 -c "import certifi;print(certifi.where())")   # python.org builds lack root certs
+python3 train_perks_v2.py             # ~7 min on an M-series Mac (MPS); --smoke for a 30 s check
+python3 export_coreml_v2.py           # models/v2/DBDPerkClassifierV2.mlpackage + Core ML vs PyTorch parity check
+python3 -m pytest --cov=crawler --cov=synth
+```
+
+- MobileNetV2 (ImageNet weights), 128×128 RGB input, normalization inside the model, so Core ML only needs `scale=1/255`.
+- Same Core ML interface as v1: input `input_1`, outputs `classLabel` and `classLabel_probs`.
+- Perks that share one icon file (the wiki's `Unknown_QuestionMark` placeholder) are excluded: they cannot be told apart.
+- Reported accuracy (`models/v2/metrics.json`) comes from **synthetic** images of the same icons, so it is optimistic.
+  The real test is photos of a screen: put crops in `real_photos/<perk_id>/*.jpg` and run `python3 evaluate_real.py`.
+
+---
+
 ## 🛠 Workflow
 
 ### 1. Build the dataset  

@@ -1,0 +1,77 @@
+import numpy as np
+import pytest
+from PIL import Image
+
+from synth.compose import ICON_SIZE, WORK_SIZE, compose, load_icon, make_background
+from synth.dataset import PerkSynthDataset
+from synth.photo import OUTPUT_SIZE, apply_photo_effects
+
+
+@pytest.fixture()
+def icon_paths(tmp_path):
+    paths = []
+    for index, colour in enumerate([(255, 0, 0, 255), (0, 255, 0, 255), (0, 0, 255, 255)]):
+        canvas = np.zeros((ICON_SIZE, ICON_SIZE, 4), np.uint8)
+        canvas[64:192, 64:192] = colour
+        path = tmp_path / f"perk_{index}.png"
+        Image.fromarray(canvas, "RGBA").save(path)
+        paths.append(path)
+    return paths
+
+
+def test_load_icon_resizes_odd_sized_images(tmp_path):
+    path = tmp_path / "big.png"
+    Image.fromarray(np.zeros((755, 755, 4), np.uint8), "RGBA").save(path)
+    assert load_icon(path).shape == (ICON_SIZE, ICON_SIZE, 4)
+
+
+def test_load_icon_missing_file_raises(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        load_icon(tmp_path / "nope.png")
+
+
+def test_background_is_rgb_float_in_range():
+    background = make_background(np.random.default_rng(1))
+    assert background.shape == (WORK_SIZE, WORK_SIZE, 3)
+    assert 0 <= background.min() and background.max() <= 255
+
+
+def test_compose_keeps_icon_visible_and_is_deterministic(icon_paths):
+    icon = load_icon(icon_paths[0])
+    first = compose(np.random.default_rng(7), icon)
+    again = compose(np.random.default_rng(7), icon)
+    assert first.shape == (WORK_SIZE, WORK_SIZE, 3) and first.dtype == np.uint8
+    assert np.array_equal(first, again)
+    centre = first[WORK_SIZE // 2 - 10:WORK_SIZE // 2 + 10, WORK_SIZE // 2 - 10:WORK_SIZE // 2 + 10].mean(axis=(0, 1))
+    assert centre[0] > centre[1] + 80 and centre[0] > centre[2] + 80, "red icon must dominate the centre"
+
+
+def test_zero_severity_only_resizes():
+    image = np.full((WORK_SIZE, WORK_SIZE, 3), 120, np.uint8)
+    out = apply_photo_effects(np.random.default_rng(0), image, 0.0)
+    assert out.shape == (OUTPUT_SIZE, OUTPUT_SIZE, 3)
+    assert np.all(out == 120)
+
+
+def test_high_severity_changes_image_but_keeps_format():
+    rng = np.random.default_rng(3)
+    image = rng.integers(0, 255, (WORK_SIZE, WORK_SIZE, 3), dtype=np.uint8)
+    clean = apply_photo_effects(np.random.default_rng(0), image, 0.0)
+    noisy = apply_photo_effects(np.random.default_rng(0), image, 1.0)
+    assert noisy.shape == clean.shape and noisy.dtype == np.uint8
+    assert np.abs(noisy.astype(int) - clean.astype(int)).mean() > 5
+
+
+def test_fixed_seed_dataset_is_reproducible_and_balanced(icon_paths):
+    dataset = PerkSynthDataset(icon_paths, samples_per_class=4, severity_range=(0.2, 0.8), fixed_seed=5)
+    first, label = dataset[7]
+    again, _ = dataset[7]
+    assert len(dataset) == 12
+    assert first.shape == (3, OUTPUT_SIZE, OUTPUT_SIZE) and 0.0 <= first.min() and first.max() <= 1.0
+    assert np.array_equal(first.numpy(), again.numpy())
+    assert [dataset[i][1] for i in range(len(dataset))].count(label) == 4
+
+
+def test_training_dataset_is_random_each_call(icon_paths):
+    dataset = PerkSynthDataset(icon_paths, samples_per_class=2, severity_range=(0.5, 1.0))
+    assert not np.array_equal(dataset[0][0].numpy(), dataset[0][0].numpy())
