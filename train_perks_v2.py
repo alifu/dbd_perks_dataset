@@ -14,7 +14,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import models
 
-from synth.dataset import TEST_SEED, VAL_SEED, PerkSynthDataset, icon_paths_for
+from synth.dataset import BACKGROUND_LABEL, TEST_SEED, VAL_SEED, PerkSynthDataset, icon_paths_for
 
 # ---- CONFIG ----
 PERKS_JSON = Path("data/perks.json")
@@ -22,6 +22,7 @@ ICONS_DIR = Path("data/icons")
 OUT_DIR = Path("models/v2")
 BATCH_SIZE = 64
 SAMPLES_PER_CLASS = 32
+NEGATIVE_FRACTION = 0.25  # background windows per perk window; teaches the model to say "not a perk"
 EVAL_SAMPLES_PER_CLASS = 8
 HEAD_EPOCHS = 2
 FINETUNE_EPOCHS = 12
@@ -150,18 +151,19 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    labels = load_labels()
-    paths = icon_paths_for(labels, ICONS_DIR)
+    perk_ids = load_labels()
+    labels = perk_ids + [BACKGROUND_LABEL]
+    paths = icon_paths_for(perk_ids, ICONS_DIR)
     device = pick_device()
     workers = 0 if args.smoke else args.workers
     samples = 2 if args.smoke else SAMPLES_PER_CLASS
     eval_samples = 1 if args.smoke else EVAL_SAMPLES_PER_CLASS
     head_epochs, tune_epochs = (1, 1) if args.smoke else (HEAD_EPOCHS, FINETUNE_EPOCHS)
-    print(f"🖥️  device={device} classes={len(labels)} train/epoch={len(labels) * samples}", flush=True)
+    print(f"🖥️  device={device} classes={len(labels)} (incl. background) perk windows/epoch={len(perk_ids) * samples}", flush=True)
 
-    train_loader = make_loader(PerkSynthDataset(paths, samples, TRAIN_SEVERITY), True, BATCH_SIZE, workers)
-    val_loader = make_loader(PerkSynthDataset(paths, eval_samples, VAL_SEVERITY, VAL_SEED), False, BATCH_SIZE, workers)
-    test_loader = make_loader(PerkSynthDataset(paths, eval_samples, TEST_SEVERITY, TEST_SEED), False, BATCH_SIZE, workers)
+    train_loader = make_loader(PerkSynthDataset(paths, samples, TRAIN_SEVERITY, negative_fraction=NEGATIVE_FRACTION), True, BATCH_SIZE, workers)
+    val_loader = make_loader(PerkSynthDataset(paths, eval_samples, VAL_SEVERITY, VAL_SEED, NEGATIVE_FRACTION), False, BATCH_SIZE, workers)
+    test_loader = make_loader(PerkSynthDataset(paths, eval_samples, TEST_SEVERITY, TEST_SEED, NEGATIVE_FRACTION), False, BATCH_SIZE, workers)
 
     model = PerkClassifier(len(labels)).to(device)
     loss_fn = nn.CrossEntropyLoss(label_smoothing=LABEL_SMOOTHING)

@@ -1,11 +1,15 @@
 {
   "device": "mps",
-  "classes": 279,
+  "classes": 280,
   "validation": {
-    "top1": 1.0,
+    "top1": 0.9986,
     "top3": 1.0,
-    "samples": 2232,
+    "samples": 2790,
     "worstClasses": [
+      {
+        "id": "__background__",
+        "accuracy": 0.993
+      },
       {
         "id": "a_nurses_calling",
         "accuracy": 1.0
@@ -61,19 +65,40 @@
       {
         "id": "background_player",
         "accuracy": 1.0
-      },
-      {
-        "id": "balanced_landing",
-        "accuracy": 1.0
       }
     ],
-    "topConfusions": []
+    "topConfusions": [
+      {
+        "expected": "__background__",
+        "predicted": "blood_rush",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "septic_touch",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "inner_strength",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "clean_break",
+        "count": 1
+      }
+    ]
   },
   "hardTest": {
-    "top1": 1.0,
-    "top3": 1.0,
-    "samples": 2232,
+    "top1": 0.9989,
+    "top3": 0.9996,
+    "samples": 2790,
     "worstClasses": [
+      {
+        "id": "__background__",
+        "accuracy": 0.995
+      },
       {
         "id": "a_nurses_calling",
         "accuracy": 1.0
@@ -129,12 +154,24 @@
       {
         "id": "background_player",
         "accuracy": 1.0
-      },
-      {
-        "id": "balanced_landing",
-        "accuracy": 1.0
       }
     ],
-    "topConfusions": []
+    "topConfusions": [
+      {
+        "expected": "__background__",
+        "predicted": "unnerving_presence",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "leverage",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "inner_strength",
+        "count": 1
+      }
+    ]
   }
 }

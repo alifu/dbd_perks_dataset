@@ -18,20 +18,19 @@ JPEG_QUALITY_RANGE = (35, 90)
 
 
 def _perspective(rng, image, severity):
-    size = image.shape[0]
-    jitter = PERSPECTIVE_JITTER * severity * size
-    corners = np.float32([[0, 0], [size, 0], [size, size], [0, size]])
+    height, width = image.shape[:2]
+    jitter = PERSPECTIVE_JITTER * severity * min(height, width)
+    corners = np.float32([[0, 0], [width, 0], [width, height], [0, height]])
     warped_corners = corners + rng.uniform(-jitter, jitter, corners.shape).astype(np.float32)
     matrix = cv2.getPerspectiveTransform(corners, warped_corners)
-    return cv2.warpPerspective(image, matrix, (size, size), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
+    return cv2.warpPerspective(image, matrix, (width, height), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
 
 
 def _low_resolution(rng, image, severity):
-    size = image.shape[0]
+    height, width = image.shape[:2]
     factor = rng.uniform(1.0 - (1.0 - MIN_RESOLUTION_FACTOR) * severity, 1.0)
-    small = max(int(size * factor), 16)
-    shrunk = cv2.resize(image, (small, small), interpolation=cv2.INTER_AREA)
-    return cv2.resize(shrunk, (size, size), interpolation=cv2.INTER_LINEAR)
+    shrunk = cv2.resize(image, (max(int(width * factor), 16), max(int(height * factor), 16)), interpolation=cv2.INTER_AREA)
+    return cv2.resize(shrunk, (width, height), interpolation=cv2.INTER_LINEAR)
 
 
 def _blur(rng, image, severity):
@@ -61,10 +60,10 @@ def _color(rng, image, severity):
 def _glare(rng, image, severity):
     if rng.random() >= GLARE_PROBABILITY:
         return image
-    size = image.shape[0]
-    centre = rng.uniform(0, size, 2)
-    radius = rng.uniform(0.3, 0.9) * size
-    ys, xs = np.mgrid[0:size, 0:size].astype(np.float32)
+    height, width = image.shape[:2]
+    centre = rng.uniform(0, 1, 2) * (width, height)
+    radius = rng.uniform(0.3, 0.9) * min(height, width)
+    ys, xs = np.mgrid[0:height, 0:width].astype(np.float32)
     distance = np.hypot(xs - centre[0], ys - centre[1])
     alpha = np.clip(1.0 - distance / radius, 0, 1) ** 2 * MAX_GLARE_STRENGTH * severity * rng.uniform(0.3, 1.0)
     return image * (1 - alpha[..., None]) + 255.0 * alpha[..., None]
@@ -73,9 +72,9 @@ def _glare(rng, image, severity):
 def _moire(rng, image, severity):
     if rng.random() >= MOIRE_PROBABILITY:
         return image
-    size = image.shape[0]
+    height, width = image.shape[:2]
     angle, cycles, phase = rng.uniform(0, np.pi), rng.uniform(20, 60), rng.uniform(0, 2 * np.pi)
-    ys, xs = np.mgrid[0:size, 0:size].astype(np.float32) / size
+    ys, xs = np.mgrid[0:height, 0:width].astype(np.float32) / min(height, width)
     grating = np.sin(2 * np.pi * cycles * (xs * np.cos(angle) + ys * np.sin(angle)) + phase)
     return image + grating[..., None] * MAX_MOIRE_AMPLITUDE * severity * 255.0
 
@@ -89,15 +88,22 @@ def _noise_and_jpeg(rng, image, severity):
     return cv2.imdecode(encoded, cv2.IMREAD_COLOR) if ok else image
 
 
+def degrade(rng: np.random.Generator, image: np.ndarray, severity: float, geometric: bool = True) -> np.ndarray:
+    """Photo-style damage at any aspect ratio. `geometric=False` skips the perspective warp
+    (scenes apply their own so ground-truth positions stay exact)."""
+    severity = float(np.clip(severity, 0.0, 1.0))
+    if severity <= 0:
+        return image
+    if geometric:
+        image = _perspective(rng, image, severity)
+    image = _low_resolution(rng, image, severity)
+    image = _blur(rng, image, severity)
+    image = _color(rng, image, severity)
+    image = _glare(rng, image, severity)
+    image = _moire(rng, image, severity)
+    return _noise_and_jpeg(rng, image, severity)
+
+
 def apply_photo_effects(rng: np.random.Generator, image: np.ndarray, severity: float) -> np.ndarray:
     """uint8 RGB (OUTPUT_SIZE x OUTPUT_SIZE). `severity` in [0, 1]; 0 only resizes."""
-    severity = float(np.clip(severity, 0.0, 1.0))
-    if severity > 0:
-        image = _perspective(rng, image, severity)
-        image = _low_resolution(rng, image, severity)
-        image = _blur(rng, image, severity)
-        image = _color(rng, image, severity)
-        image = _glare(rng, image, severity)
-        image = _moire(rng, image, severity)
-        image = _noise_and_jpeg(rng, image, severity)
-    return cv2.resize(image, (OUTPUT_SIZE, OUTPUT_SIZE), interpolation=cv2.INTER_AREA)
+    return cv2.resize(degrade(rng, image, severity), (OUTPUT_SIZE, OUTPUT_SIZE), interpolation=cv2.INTER_AREA)

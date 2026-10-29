@@ -75,3 +75,38 @@ def test_fixed_seed_dataset_is_reproducible_and_balanced(icon_paths):
 def test_training_dataset_is_random_each_call(icon_paths):
     dataset = PerkSynthDataset(icon_paths, samples_per_class=2, severity_range=(0.5, 1.0))
     assert not np.array_equal(dataset[0][0].numpy(), dataset[0][0].numpy())
+
+
+def test_negative_items_use_the_background_class(icon_paths):
+    dataset = PerkSynthDataset(icon_paths, samples_per_class=4, severity_range=(0.2, 0.8),
+                               fixed_seed=5, negative_fraction=0.25)
+    labels = [dataset[i][1] for i in range(len(dataset))]
+    assert len(dataset) == 15
+    assert labels.count(len(icon_paths)) == 3
+    assert all(labels[:12].count(c) == 4 for c in range(3))
+
+
+def test_every_negative_kind_renders_a_window(icon_paths):
+    from synth import negatives
+    icons = [load_icon(p) for p in icon_paths]
+    for kind in negatives.NEGATIVE_KINDS:
+        rng = np.random.default_rng(0)
+        original = negatives.NEGATIVE_KINDS
+        negatives.NEGATIVE_KINDS = (kind,)
+        try:
+            window = negatives.make_negative(rng, icons)
+        finally:
+            negatives.NEGATIVE_KINDS = original
+        assert window.shape == (WORK_SIZE, WORK_SIZE, 3) and window.dtype == np.uint8, kind
+
+
+def test_scene_ground_truth_lies_inside_the_image_and_is_deterministic(icon_paths):
+    from synth.scene import LAYOUTS, render_scene
+    perks = [(f"p{i}", load_icon(p)) for i, p in enumerate(icon_paths)]
+    for layout in LAYOUTS:
+        image, placed = render_scene(np.random.default_rng(1), perks, layout, 0.3)
+        again, _ = render_scene(np.random.default_rng(1), perks, layout, 0.3)
+        height, width = image.shape[:2]
+        assert np.array_equal(image, again)
+        assert len(placed) == 3
+        assert all(0 <= p.cx <= width and 0 <= p.cy <= height and p.diagonal > 10 for p in placed), layout

@@ -12,7 +12,7 @@ import torch
 from PIL import Image
 from torch import nn
 
-from synth.dataset import TEST_SEED, PerkSynthDataset, icon_paths_for
+from synth.dataset import BACKGROUND_LABEL, TEST_SEED, PerkSynthDataset, icon_paths_for
 from train_perks_v2 import ICONS_DIR, TEST_SEVERITY, PerkClassifier
 
 MODEL_DIR = Path("models/v2")
@@ -57,7 +57,8 @@ def convert(model: PerkClassifier, labels: list[str]) -> ct.models.MLModel:
 
 def check_parity(mlmodel, model: PerkClassifier, labels: list[str]) -> float:
     """Fraction of held-out hard samples where Core ML and PyTorch pick the same perk."""
-    dataset = PerkSynthDataset(icon_paths_for(labels, ICONS_DIR), 2, TEST_SEVERITY, TEST_SEED)
+    perk_ids = [label for label in labels if label != BACKGROUND_LABEL]
+    dataset = PerkSynthDataset(icon_paths_for(perk_ids, ICONS_DIR), 2, TEST_SEVERITY, TEST_SEED, negative_fraction=0.25)
     step = max(len(dataset) // PARITY_SAMPLES, 1)
     agree = total = 0
     for index in range(0, len(dataset), step):
