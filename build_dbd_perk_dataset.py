@@ -1,9 +1,11 @@
+from io import BytesIO
 import os, requests, json, time, random, re
 from bs4 import BeautifulSoup, NavigableString
 from PIL import Image, ImageEnhance, ImageOps, ImageFilter
 
 # ---- CONFIG ----
 BASE_URL = "https://deadbydaylight.fandom.com/api.php"
+BACKGROUND_PAGE = "https://deadbydaylight.fandom.com/wiki/Perks"
 OUT_DIR = "dbd_perks_dataset"
 AUGMENT_PER_PERK = 50
 REFETCH_IMAGES = False  # 👈 Set to True to force re-download all images
@@ -13,8 +15,10 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}
 os.makedirs(OUT_DIR, exist_ok=True)
 RAW_DIR = os.path.join(OUT_DIR, "raw")
 AUG_DIR = os.path.join(OUT_DIR, "augmented")
+BACKGROUND_DIR = os.path.join(OUT_DIR, "backgrounds")
 os.makedirs(RAW_DIR, exist_ok=True)
 os.makedirs(AUG_DIR, exist_ok=True)
+os.makedirs(BACKGROUND_DIR, exist_ok=True)
 
 metadata_path = os.path.join(OUT_DIR, "metadata.json")
 metadata = {}
@@ -220,6 +224,41 @@ for fname in os.listdir(RAW_DIR):
     for j in range(existing_aug, AUGMENT_PER_PERK):
         out_path = os.path.join(perk_dir, f"{perk_name}_{j}.png")
         augment_image(src).save(out_path)
+
+# ---- STEP 4: Background images ----
+def download_perk_backgrounds():
+    print("Downloading perk backgrounds...")
+
+    r = requests.get(BACKGROUND_PAGE)
+    r.raise_for_status()
+
+    soup = BeautifulSoup(r.text, "html.parser")
+
+    downloaded = set()
+
+    for img in soup.find_all("img"):
+        src = img.get("src", "")
+
+        # Only keep standalone perk background assets
+        if "Perks_background" not in src:
+            continue
+
+        filename = src.split("/")[-1].split("?")[0]
+
+        if filename in downloaded:
+            continue
+
+        downloaded.add(filename)
+
+        print(f"Downloading {filename}")
+
+        image = Image.open(BytesIO(requests.get(src).content)).convert("RGBA")
+
+        image.save(os.path.join(BACKGROUND_DIR, filename))
+
+    print(f"Downloaded {len(downloaded)} backgrounds.")
+
+download_perk_backgrounds()
 
 print("\n✅ Dataset complete!")
 print(f"Total perks: {len(metadata)}")

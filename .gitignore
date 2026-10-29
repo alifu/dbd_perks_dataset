@@ -8,3 +8,10 @@ dbd_perks_model.h5
 dbd_perks_model.keras
 dbd_perks_model_finetuned.h5
 dbd_perks_model_finetuned.keras
+
+# Crawler v2
+cache/
+data/icons/
+.pytest_cache/
+.coverage
+__pycache__/
