@@ -121,6 +121,18 @@ python tools/confusion_report.py ./ScanLog --top 20
 
 Prints the most confused perk pairs (the set to oversample when retraining) and the most often misread perks.
 
+### 4. Import icons and retrain — `tools/import_game_icons.py`
+
+Export the perk textures from your own game install with FModel (`.../UI/UMGAssets/Icons/Perks`, "Save Folder's Packages Textures (.png)") into `data/game/Perks/`, then:
+
+```bash
+cp <app>/Resources/perks.json data/perks.json           # the converted perks
+python tools/import_game_icons.py                       # copies icons of perks that have none into data/icons/<id>.png
+python train_perks_v2.py && python export_coreml_v2.py  # then copy models/v2/DBDPerkClassifierV2.mlpackage into the app
+```
+
+`data/game/` and `data/icons/` are git-ignored on purpose: the icons are the game's copyrighted assets, so **never commit images** (perks, add-ons, items, ...). Only `perks.json`, `labels.json` and `metrics.json` are committed.
+
 ---
 
 ## 🚀 Model v2 (PyTorch, trains on the Apple GPU)

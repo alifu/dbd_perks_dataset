@@ -6,7 +6,7 @@ PERK_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
     "required": [
-        "id", "name", "role", "owner", "iconFile", "iconUrl",
+        "id", "name", "role", "owner", "iconFile",
         "description", "flavor", "descriptionPatch", "wikiUrl",
     ],
     "properties": {
@@ -15,7 +15,7 @@ PERK_SCHEMA = {
         "role": {"enum": ["survivor", "killer"]},
         "owner": {"type": "string", "description": "Empty string means a generic (teachable) perk."},
         "iconFile": {"type": "string", "pattern": r"\.png$"},
-        "iconUrl": {"type": "string", "pattern": "^https://"},
+        "iconUrl": {"type": "string", "pattern": "^https://", "description": "Absent for perks only in the game data (no wiki icon)."},
         "description": {"type": "string", "minLength": 1},
         "flavor": {"type": "string"},
         "descriptionPatch": {"type": ["string", "null"]},
@@ -26,7 +26,7 @@ PERK_SCHEMA = {
 DOCUMENT_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
-    "required": ["schemaVersion", "generatedAt", "source", "wikiRevisionId", "perks"],
+    "required": ["schemaVersion", "generatedAt", "source", "perks"],
     "properties": {
         "schemaVersion": {"const": SCHEMA_VERSION},
         "generatedAt": {"type": "string"},
