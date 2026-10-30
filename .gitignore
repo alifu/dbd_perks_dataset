@@ -12,6 +12,7 @@ dbd_perks_model_finetuned.keras
 # Crawler v2
 cache/
 data/icons/
+data/game/
 .pytest_cache/
 .coverage
 __pycache__/

@@ -69,6 +69,60 @@ python3 -m pytest --cov=crawler
 
 ---
 
+## 🎮 Game data tools (`tools/`)
+
+The wiki lags behind the game, so these scripts use the community datamine API
+([dbd.tricky.lol](https://dbd.tricky.lol/api), extracted from the game files, updated each patch).
+Python standard library only, so they run the same on Windows, macOS and Linux.
+
+### 1. Crawl the game data — `tools/crawl_dbd_api.py`
+
+```bash
+python tools/crawl_dbd_api.py                    # perks, characters, items, addons, offerings, maps, dlc -> data/game/
+python tools/crawl_dbd_api.py perks addons       # only these endpoints
+python tools/crawl_dbd_api.py --all              # also gamemodes, journals, customizations, archives, rift
+python tools/crawl_dbd_api.py --force            # download even if the version is unchanged
+python tools/crawl_dbd_api.py --compare "<app>/DBD Perks/Resources/perks.json"   # list perks the app lacks
+```
+
+- Each endpoint is saved as `data/game/<endpoint>.json`, exactly as served (a dict keyed by game id).
+- An endpoint is skipped when its version in `/api/versions` is unchanged since the last run.
+- Polite: identifiable User-Agent, 1 s between requests. No Cloudflare bypass: if the API answers 403/429 the script stops.
+- macOS with a python.org Python: if you get `CERTIFICATE_VERIFY_FAILED`, run its "Install Certificates.command" once.
+- Icons are **not** downloaded (the API only gives in-game paths such as `/Game/UI/UMGAssets/Icons/Perks/Quiche/T_UI_iconsPerks_FiveMovesAhead`).
+  Export those textures from your own game install (e.g. with FModel); `iconFile` in the converted JSON holds the matching file name.
+  Do not scrape icons from sites that forbid it (nightlight.gg disallows AI training and blocks scripts).
+
+### 2. Convert to the app's `perks.json` — `tools/convert_game_data.py`
+
+```bash
+python tools/convert_game_data.py \
+    --existing "<app>/DBD Perks/Resources/perks.json" \
+    --out perks.new.json
+```
+
+- Descriptions come from the game data: HTML becomes plain text with `•` bullets, `{Tunable.X.Y}` becomes the per-tier values (`50/75/100`), `{Keyword.X}` becomes the keyword.
+- Perks already in `--existing` keep their **id** (the model's labels are these ids), flavor text and wiki icon; name, owner, role and description are refreshed.
+- New perks get a new id, no `iconUrl`, and an `iconFile` with the game texture name.
+- Perks only in `--existing` are kept and listed, never deleted. If the game data lacks a number for a description, the existing text is kept.
+- Matching an existing perk: exact name, then icon texture name, then a close name (accents ignored, similarity ≥ 0.9).
+- The printed report lists loose matches, added perks, kept perks and unresolved placeholders. Check it, then copy `perks.new.json` over the app's `Resources/perks.json`.
+- New perks are unknown to the classifier until it is retrained with their icons.
+
+### 3. Find look-alike mistakes — `tools/confusion_report.py`
+
+The iOS debug build logs scans to `Documents/ScanLog` and files crops you mark "Wrong?" under the correct perk.
+
+```bash
+xcrun devicectl device copy from --device <udid> --domain-type appDataContainer \
+    --domain-identifier AppWork.DBD-Perks --source Documents/ScanLog --destination ./ScanLog
+python tools/confusion_report.py ./ScanLog --top 20
+```
+
+Prints the most confused perk pairs (the set to oversample when retraining) and the most often misread perks.
+
+---
+
 ## 🚀 Model v2 (PyTorch, trains on the Apple GPU)
 
 v2 replaces the Keras pipeline. Instead of a folder of pre-augmented images it **generates training images on the fly**:
