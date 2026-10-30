@@ -4,6 +4,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from .frame import draw_framed
+
 WORK_SIZE = 192
 ICON_SIZE = 256
 
@@ -25,6 +27,8 @@ SCALE_RANGE = (0.7, 1.6)   # icon art size relative to the crop (in-game art/fra
 ROTATION_DEGREES = 8.0
 SHIFT_FRACTION = 0.08
 NEIGHBOR_BLEED_PROBABILITY = 0.3
+FRAMED_PROBABILITY = 0.75  # photographed slot with the black-bordered diamond; the rest keep the flat look
+FRAMED_SCALE_RANGE = (0.75, 1.3)
 
 
 def load_icon(path: Path) -> np.ndarray:
@@ -60,12 +64,12 @@ def make_background(rng: np.random.Generator, size: int = WORK_SIZE) -> np.ndarr
     return np.clip(background, 0, 255).astype(np.float32)
 
 
-def _place_icon(rng: np.random.Generator, icon: np.ndarray, size: int) -> tuple[np.ndarray, np.ndarray]:
+def _place_icon(rng: np.random.Generator, icon: np.ndarray, size: int, scale_range: tuple[float, float] = SCALE_RANGE) -> tuple[np.ndarray, np.ndarray]:
     """Scale / rotate / shift the icon. Returns (premultiplied RGB float, alpha float 0..1)."""
     alpha = icon[..., 3:4].astype(np.float32) / 255.0
     premultiplied = np.concatenate([icon[..., :3].astype(np.float32) * alpha, alpha], axis=2)
 
-    scale = rng.uniform(*SCALE_RANGE) * size / ICON_SIZE
+    scale = rng.uniform(*scale_range) * size / ICON_SIZE
     matrix = cv2.getRotationMatrix2D((ICON_SIZE / 2, ICON_SIZE / 2), rng.uniform(-ROTATION_DEGREES, ROTATION_DEGREES), scale)
     # The rotation keeps the icon centre fixed; move that centre to the canvas centre plus a random shift.
     shift = rng.uniform(-SHIFT_FRACTION, SHIFT_FRACTION, 2) * size
@@ -95,6 +99,10 @@ def _add_neighbor_bleed(rng: np.random.Generator, image: np.ndarray) -> np.ndarr
 def compose(rng: np.random.Generator, icon: np.ndarray, size: int = WORK_SIZE) -> np.ndarray:
     """uint8 RGB (size x size): icon over a random in-game style background."""
     background = make_background(rng, size)
+    if rng.random() < FRAMED_PROBABILITY:
+        colour, alpha = _place_icon(rng, icon, size, FRAMED_SCALE_RANGE)
+        image = draw_framed(rng, background, colour, alpha)
+        return np.clip(image, 0, 255).astype(np.uint8)
     colour, alpha = _place_icon(rng, icon, size)
     image = colour + background * (1.0 - alpha)
     if rng.random() < NEIGHBOR_BLEED_PROBABILITY:

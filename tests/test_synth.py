@@ -110,3 +110,31 @@ def test_scene_ground_truth_lies_inside_the_image_and_is_deterministic(icon_path
         assert np.array_equal(image, again)
         assert len(placed) == 3
         assert all(0 <= p.cx <= width and 0 <= p.cy <= height and p.diagonal > 10 for p in placed), layout
+
+
+def test_framed_style_has_dark_border_ring_and_is_deterministic(icon_paths):
+    from synth.frame import BORDER_COLOR, draw_framed
+    size = WORK_SIZE
+    tint = np.full((size, size, 3), 150.0, np.float32)
+    nothing = np.zeros((size, size, 3), np.float32), np.zeros((size, size, 1), np.float32)
+    first = draw_framed(np.random.default_rng(5), tint, *nothing)
+    again = draw_framed(np.random.default_rng(5), tint, *nothing)
+    assert np.array_equal(first, again)
+    border = np.all(np.abs(first - np.array(BORDER_COLOR, np.float32)) < 30, axis=2)
+    assert border.sum() > size, "the black diamond border must be visible"
+    assert first[size // 2, size // 2].mean() > 100, "the tinted inside shows at the centre"
+
+
+def test_compose_uses_both_framed_and_flat_styles(icon_paths):
+    icon = load_icon(icon_paths[0])
+    corner_darkness = [compose(np.random.default_rng(seed), icon)[:6, :6].mean() for seed in range(60)]
+    assert len(set(round(v) for v in corner_darkness)) > 10
+
+
+def test_screen_effects_keep_format_and_are_deterministic():
+    from synth.photo import _pixelate, _screen_grid
+    image = np.random.default_rng(0).uniform(0, 255, (WORK_SIZE, WORK_SIZE, 3)).astype(np.float32)
+    for effect in (_pixelate, _screen_grid):
+        out = effect(np.random.default_rng(1), image, 1.0)
+        assert out.shape == image.shape
+        assert np.array_equal(out, effect(np.random.default_rng(1), image, 1.0))

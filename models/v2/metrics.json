@@ -70,17 +70,17 @@
     "topConfusions": [
       {
         "expected": "__background__",
-        "predicted": "conviction",
+        "predicted": "hex_the_third_seal",
         "count": 1
       },
       {
         "expected": "__background__",
-        "predicted": "all_shaking_thunder",
+        "predicted": "dominance",
         "count": 1
       },
       {
         "expected": "__background__",
-        "predicted": "mindbreaker",
+        "predicted": "teamwork_collective_stealth",
         "count": 1
       },
       {
@@ -91,13 +91,17 @@
     ]
   },
   "hardTest": {
-    "top1": 0.9994,
+    "top1": 0.9981,
     "top3": 0.9997,
     "samples": 3210,
     "worstClasses": [
       {
+        "id": "kindred",
+        "accuracy": 0.875
+      },
+      {
         "id": "__background__",
-        "accuracy": 0.997
+        "accuracy": 0.992
       },
       {
         "id": "a_nurses_calling",
@@ -150,21 +154,37 @@
       {
         "id": "autodidact",
         "accuracy": 1.0
-      },
-      {
-        "id": "awakened_awareness",
-        "accuracy": 1.0
       }
     ],
     "topConfusions": [
       {
-        "expected": "__background__",
-        "predicted": "botany_knowledge",
+        "expected": "kindred",
+        "predicted": "object_of_obsession",
         "count": 1
       },
       {
         "expected": "__background__",
-        "predicted": "boon_steadfast",
+        "predicted": "fogwise",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "pop_goes_the_weasel",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "ultimate_weapon",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "hex_blood_favour",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "invocation_weaving_spiders",
         "count": 1
       }
     ]

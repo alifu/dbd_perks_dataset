@@ -15,6 +15,11 @@ MOIRE_PROBABILITY = 0.5
 MAX_MOIRE_AMPLITUDE = 0.06
 MAX_NOISE_SIGMA = 8.0
 JPEG_QUALITY_RANGE = (35, 90)
+PIXELATE_PROBABILITY = 0.5      # the game UI is low resolution and shows up as chunky blocks
+PIXELATE_FACTOR = (0.2, 0.55)
+GRID_PROBABILITY = 0.6          # the monitor's pixel grid
+GRID_PERIOD = (3.0, 7.0)        # pixels, at the 192 px working size
+MAX_GRID_DEPTH = 0.35
 
 
 def _perspective(rng, image, severity):
@@ -31,6 +36,26 @@ def _low_resolution(rng, image, severity):
     factor = rng.uniform(1.0 - (1.0 - MIN_RESOLUTION_FACTOR) * severity, 1.0)
     shrunk = cv2.resize(image, (max(int(width * factor), 16), max(int(height * factor), 16)), interpolation=cv2.INTER_AREA)
     return cv2.resize(shrunk, (width, height), interpolation=cv2.INTER_LINEAR)
+
+
+def _pixelate(rng, image, severity):
+    if rng.random() >= PIXELATE_PROBABILITY:
+        return image
+    height, width = image.shape[:2]
+    factor = rng.uniform(1.0 - (1.0 - PIXELATE_FACTOR[0]) * severity, 1.0) if severity < 1 else rng.uniform(*PIXELATE_FACTOR)
+    shrunk = cv2.resize(image, (max(int(width * factor), 12), max(int(height * factor), 12)), interpolation=cv2.INTER_AREA)
+    return cv2.resize(shrunk, (width, height), interpolation=cv2.INTER_NEAREST)
+
+
+def _screen_grid(rng, image, severity):
+    if rng.random() >= GRID_PROBABILITY:
+        return image
+    height, width = image.shape[:2]
+    period = rng.uniform(*GRID_PERIOD)
+    ys, xs = np.mgrid[0:height, 0:width].astype(np.float32)
+    lines = ((xs / period) % 1.0 < 1.0 / period) | ((ys / period) % 1.0 < 1.0 / period)
+    depth = MAX_GRID_DEPTH * severity * rng.uniform(0.4, 1.0)
+    return image * (1.0 - depth * lines[..., None])
 
 
 def _blur(rng, image, severity):
@@ -97,10 +122,12 @@ def degrade(rng: np.random.Generator, image: np.ndarray, severity: float, geomet
     if geometric:
         image = _perspective(rng, image, severity)
     image = _low_resolution(rng, image, severity)
+    image = _pixelate(rng, image, severity)
     image = _blur(rng, image, severity)
     image = _color(rng, image, severity)
     image = _glare(rng, image, severity)
     image = _moire(rng, image, severity)
+    image = _screen_grid(rng, image, severity)
     return _noise_and_jpeg(rng, image, severity)
 
 
