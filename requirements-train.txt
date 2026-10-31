@@ -7,3 +7,6 @@ pillow
 certifi
 pytest
 pytest-cov
+onnx
+onnxruntime
+onnxscript

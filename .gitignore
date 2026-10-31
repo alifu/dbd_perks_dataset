@@ -25,3 +25,6 @@ models/addons_v1/*.pt
 models/addons_v1/*.mlpackage
 
 models/ablation/
+
+models/v2/*.onnx
+models/addons_v1/*.onnx
