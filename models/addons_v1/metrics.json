@@ -1,0 +1,166 @@
+{
+  "device": "mps",
+  "classes": 940,
+  "validation": {
+    "top1": 1.0,
+    "top3": 1.0,
+    "samples": 9390,
+    "worstClasses": [
+      {
+        "id": "iconaddon_abdominaldressing",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_acidicblood",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_adaptivelighting",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_adivalente1",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_adminwristband",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_adrenalineinjector",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_adrenalinevial",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_advancedmovementprediction",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_airfreshner",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_akitoscrutch",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_alchemistsring",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_alucardsshield",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_amandasletter",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_amandassecret",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_amanitatoxin",
+        "accuracy": 1.0
+      }
+    ],
+    "topConfusions": []
+  },
+  "hardTest": {
+    "top1": 0.9994,
+    "top3": 0.9999,
+    "samples": 9390,
+    "worstClasses": [
+      {
+        "id": "iconaddon_sootthebeast",
+        "accuracy": 0.75
+      },
+      {
+        "id": "iconaddon_victimsdetailedroutine",
+        "accuracy": 0.875
+      },
+      {
+        "id": "__background__",
+        "accuracy": 0.998
+      },
+      {
+        "id": "iconaddon_abdominaldressing",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_acidicblood",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_adaptivelighting",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_adivalente1",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_adminwristband",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_adrenalineinjector",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_adrenalinevial",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_advancedmovementprediction",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_airfreshner",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_akitoscrutch",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_alchemistsring",
+        "accuracy": 1.0
+      },
+      {
+        "id": "iconaddon_alucardsshield",
+        "accuracy": 1.0
+      }
+    ],
+    "topConfusions": [
+      {
+        "expected": "iconaddon_sootthebeast",
+        "predicted": "iconaddon_sootthehound",
+        "count": 2
+      },
+      {
+        "expected": "iconaddon_victimsdetailedroutine",
+        "predicted": "iconaddon_jigsawsannotatedplan",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "iconaddon_abdominaldressing",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "iconaddon_darkcincture",
+        "count": 1
+      },
+      {
+        "expected": "__background__",
+        "predicted": "iconaddon_stypticagent",
+        "count": 1
+      }
+    ]
+  }
+}

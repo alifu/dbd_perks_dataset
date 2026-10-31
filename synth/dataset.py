@@ -30,13 +30,14 @@ class PerkSynthDataset(Dataset):
 
     def __init__(self, icon_paths: list[Path], samples_per_class: int,
                  severity_range: tuple[float, float], fixed_seed: int | None = None,
-                 negative_fraction: float = 0.0) -> None:
+                 negative_fraction: float = 0.0, composer=compose) -> None:
         self._icon_paths = icon_paths
         self._samples_per_class = samples_per_class
         self._severity_range = severity_range
         self._fixed_seed = fixed_seed
         self._perk_items = len(icon_paths) * samples_per_class
         self._negative_items = int(self._perk_items * negative_fraction)
+        self._composer = composer
         self._icons: dict[int, np.ndarray] = {}
 
     def __len__(self) -> int:
@@ -54,10 +55,10 @@ class PerkSynthDataset(Dataset):
         rng = np.random.default_rng(None if self._fixed_seed is None else [self._fixed_seed, index])
         severity = rng.uniform(*self._severity_range)
         if index >= self._perk_items:
-            window = make_negative(rng, self._some_icons(rng))
+            window = make_negative(rng, self._some_icons(rng), composer=self._composer)
             return apply_photo_effects(rng, window, severity), len(self._icon_paths)
         class_index = index % len(self._icon_paths)
-        return apply_photo_effects(rng, compose(rng, self._icon(class_index)), severity), class_index
+        return apply_photo_effects(rng, self._composer(rng, self._icon(class_index)), severity), class_index
 
     def __getitem__(self, index: int) -> tuple[torch.Tensor, int]:
         image, class_index = self.render(index)

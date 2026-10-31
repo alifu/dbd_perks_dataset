@@ -10,17 +10,17 @@ PARTIAL_ZOOM = 2                  # zoomed-in window shows only a fragment of th
 CLUTTER_SHAPES = (4, 14)
 
 
-def _tiny_icon(rng, icons, size):
+def _tiny_icon(rng, icons, size, composer):
     scene = make_background(rng, size)
     small = int(size * rng.uniform(*TINY_SCALE_RANGE))
-    piece = cv2.resize(compose(rng, icons[rng.integers(len(icons))]), (small, small), interpolation=cv2.INTER_AREA)
+    piece = cv2.resize(composer(rng, icons[rng.integers(len(icons))]), (small, small), interpolation=cv2.INTER_AREA)
     x, y = (int(rng.integers(0, size - small)) for _ in range(2))
     scene[y:y + small, x:x + small] = piece
     return scene.astype(np.uint8)
 
 
-def _partial_icon(rng, icons, size):
-    big = compose(rng, icons[rng.integers(len(icons))], size * PARTIAL_ZOOM)
+def _partial_icon(rng, icons, size, composer):
+    big = composer(rng, icons[rng.integers(len(icons))], size * PARTIAL_ZOOM)
     # keep windows whose centre is off the glyph's centre, so only a fragment is visible
     while True:
         x, y = (int(rng.integers(0, size * (PARTIAL_ZOOM - 1) + 1)) for _ in range(2))
@@ -40,22 +40,22 @@ def _ui_clutter(rng, size):
     return np.clip(image, 0, 255).astype(np.uint8)
 
 
-def _between_icons(rng, icons, size):
-    left = compose(rng, icons[rng.integers(len(icons))], size)
-    right = compose(rng, icons[rng.integers(len(icons))], size)
+def _between_icons(rng, icons, size, composer):
+    left = composer(rng, icons[rng.integers(len(icons))], size)
+    right = composer(rng, icons[rng.integers(len(icons))], size)
     cut = int(size * rng.uniform(0.35, 0.65))
     return np.concatenate([left[:, :cut], right[:, cut:]], axis=1)
 
 
-def make_negative(rng: np.random.Generator, icons: list[np.ndarray], size: int = WORK_SIZE) -> np.ndarray:
+def make_negative(rng: np.random.Generator, icons: list[np.ndarray], size: int = WORK_SIZE, composer=compose) -> np.ndarray:
     """uint8 RGB (size x size) that contains no complete, centred perk icon."""
     kind = NEGATIVE_KINDS[rng.integers(len(NEGATIVE_KINDS))]
     if kind == "empty":
         return make_background(rng, size).astype(np.uint8)
     if kind == "tiny_icon":
-        return _tiny_icon(rng, icons, size)
+        return _tiny_icon(rng, icons, size, composer)
     if kind == "partial_icon":
-        return _partial_icon(rng, icons, size)
+        return _partial_icon(rng, icons, size, composer)
     if kind == "ui_clutter":
         return _ui_clutter(rng, size)
-    return _between_icons(rng, icons, size)
+    return _between_icons(rng, icons, size, composer)

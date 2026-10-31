@@ -2,6 +2,7 @@
 
 python3 train_perks_v2.py            # full run
 python3 train_perks_v2.py --smoke    # tiny end-to-end check
+python3 train_perks_v2.py --target addons   # the add-on classifier (models/addons_v1)
 """
 import argparse
 import json
@@ -14,12 +15,16 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import models
 
+from addon_data import addon_labels_and_paths
+from synth.addon_tile import compose_addon
+from synth.compose import compose
 from synth.dataset import BACKGROUND_LABEL, TEST_SEED, VAL_SEED, PerkSynthDataset, icon_paths_for
 
 # ---- CONFIG ----
 PERKS_JSON = Path("data/perks.json")
 ICONS_DIR = Path("data/icons")
 OUT_DIR = Path("models/v2")
+ADDON_OUT_DIR = Path("models/addons_v1")
 BATCH_SIZE = 64
 SAMPLES_PER_CLASS = 32
 NEGATIVE_FRACTION = 0.25  # background windows per perk window; teaches the model to say "not a perk"
@@ -144,16 +149,28 @@ def train_stage(name, epochs, num_classes, model, train_loader, val_loader, devi
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--smoke", action="store_true", help="tiny run to check the pipeline")
-    parser.add_argument("--out", type=Path, default=OUT_DIR)
+    parser.add_argument("--target", choices=("perks", "addons"), default="perks")
+    parser.add_argument("--out", type=Path, help="default: models/v2 for perks, models/addons_v1 for add-ons")
     parser.add_argument("--workers", type=int, default=WORKERS)
     return parser.parse_args()
 
 
+def load_target(target: str) -> tuple[list[str], list[Path], object, Path]:
+    """(class ids, one icon file per id, composer, default output folder)."""
+    if target == "addons":
+        ids, paths, missing = addon_labels_and_paths()
+        if missing:
+            print(f"⚠️  {len(missing)} add-on icons missing from the game export (skipped): {missing[:5]}")
+        return ids, paths, compose_addon, ADDON_OUT_DIR
+    ids = load_labels()
+    return ids, icon_paths_for(ids, ICONS_DIR), compose, OUT_DIR
+
+
 def main() -> int:
     args = parse_args()
-    perk_ids = load_labels()
+    perk_ids, paths, composer, default_out = load_target(args.target)
+    args.out = args.out or default_out
     labels = perk_ids + [BACKGROUND_LABEL]
-    paths = icon_paths_for(perk_ids, ICONS_DIR)
     device = pick_device()
     workers = 0 if args.smoke else args.workers
     samples = 2 if args.smoke else SAMPLES_PER_CLASS
@@ -161,9 +178,9 @@ def main() -> int:
     head_epochs, tune_epochs = (1, 1) if args.smoke else (HEAD_EPOCHS, FINETUNE_EPOCHS)
     print(f"🖥️  device={device} classes={len(labels)} (incl. background) perk windows/epoch={len(perk_ids) * samples}", flush=True)
 
-    train_loader = make_loader(PerkSynthDataset(paths, samples, TRAIN_SEVERITY, negative_fraction=NEGATIVE_FRACTION), True, BATCH_SIZE, workers)
-    val_loader = make_loader(PerkSynthDataset(paths, eval_samples, VAL_SEVERITY, VAL_SEED, NEGATIVE_FRACTION), False, BATCH_SIZE, workers)
-    test_loader = make_loader(PerkSynthDataset(paths, eval_samples, TEST_SEVERITY, TEST_SEED, NEGATIVE_FRACTION), False, BATCH_SIZE, workers)
+    train_loader = make_loader(PerkSynthDataset(paths, samples, TRAIN_SEVERITY, negative_fraction=NEGATIVE_FRACTION, composer=composer), True, BATCH_SIZE, workers)
+    val_loader = make_loader(PerkSynthDataset(paths, eval_samples, VAL_SEVERITY, VAL_SEED, NEGATIVE_FRACTION, composer), False, BATCH_SIZE, workers)
+    test_loader = make_loader(PerkSynthDataset(paths, eval_samples, TEST_SEVERITY, TEST_SEED, NEGATIVE_FRACTION, composer), False, BATCH_SIZE, workers)
 
     model = PerkClassifier(len(labels)).to(device)
     loss_fn = nn.CrossEntropyLoss(label_smoothing=LABEL_SMOOTHING)
