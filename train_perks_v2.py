@@ -8,6 +8,7 @@ import argparse
 import json
 import time
 from collections import Counter
+from functools import partial
 from pathlib import Path
 
 import torch
@@ -152,6 +153,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--target", choices=("perks", "addons"), default="perks")
     parser.add_argument("--out", type=Path, help="default: models/v2 for perks, models/addons_v1 for add-ons")
     parser.add_argument("--workers", type=int, default=WORKERS)
+    parser.add_argument("--framed-share", type=float, help="perks only: share of framed samples (0..1), default synth.compose.FRAMED_PROBABILITY. Used for the paper's ablation")
     return parser.parse_args()
 
 
@@ -169,6 +171,10 @@ def load_target(target: str) -> tuple[list[str], list[Path], object, Path]:
 def main() -> int:
     args = parse_args()
     perk_ids, paths, composer, default_out = load_target(args.target)
+    if args.framed_share is not None:
+        if args.target != "perks" or not 0.0 <= args.framed_share <= 1.0:
+            raise SystemExit("--framed-share needs --target perks and a value between 0 and 1")
+        composer = partial(compose, framed_probability=args.framed_share)
     args.out = args.out or default_out
     labels = perk_ids + [BACKGROUND_LABEL]
     device = pick_device()

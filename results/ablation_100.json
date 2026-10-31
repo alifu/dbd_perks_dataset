@@ -1,0 +1,78 @@
+{
+  "summary": {
+    "crops": 5,
+    "top1": 1.0,
+    "top1Wilson95": [
+      0.5655085052479191,
+      1.0
+    ],
+    "top3": 1.0,
+    "top3Wilson95": [
+      0.5655085052479191,
+      1.0
+    ],
+    "meanPCorrect": 0.5984183609485626
+  },
+  "records": [
+    {
+      "expected": "boon_shadow_step",
+      "top3": [
+        "boon_shadow_step",
+        "__background__",
+        "whispers"
+      ],
+      "pCorrect": 0.29941079020500183,
+      "top1Hit": true,
+      "top3Hit": true,
+      "file": "03274782-F5FF-43DB-92AF-9530613DF7E0_0.jpg"
+    },
+    {
+      "expected": "decisive_strike",
+      "top3": [
+        "decisive_strike",
+        "__background__",
+        "change_of_plan"
+      ],
+      "pCorrect": 0.6806549429893494,
+      "top1Hit": true,
+      "top3Hit": true,
+      "file": "BA3088FF-3369-4A43-A468-D731C7343EA4_0.jpg"
+    },
+    {
+      "expected": "diversion",
+      "top3": [
+        "diversion",
+        "windows_of_opportunity",
+        "__background__"
+      ],
+      "pCorrect": 0.5676339268684387,
+      "top1Hit": true,
+      "top3Hit": true,
+      "file": "97A3B456-F045-4B0F-B0DF-1CD47110CB17_0.jpg"
+    },
+    {
+      "expected": "plot_twist",
+      "top3": [
+        "plot_twist",
+        "rancor",
+        "left_behind"
+      ],
+      "pCorrect": 0.7641124129295349,
+      "top1Hit": true,
+      "top3Hit": true,
+      "file": "7684EBCA-208D-4493-969C-08494A10F0E7_0.jpg"
+    },
+    {
+      "expected": "windows_of_opportunity",
+      "top3": [
+        "windows_of_opportunity",
+        "__background__",
+        "iron_will"
+      ],
+      "pCorrect": 0.6802797317504883,
+      "top1Hit": true,
+      "top3Hit": true,
+      "file": "F24D4301-1751-4004-A170-402E56229AEF_0.jpg"
+    }
+  ]
+}

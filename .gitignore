@@ -23,3 +23,5 @@ models/v2/*.mlpackage
 real_photos/
 models/addons_v1/*.pt
 models/addons_v1/*.mlpackage
+
+models/ablation/

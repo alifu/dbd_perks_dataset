@@ -96,10 +96,13 @@ def _add_neighbor_bleed(rng: np.random.Generator, image: np.ndarray) -> np.ndarr
     return cv2.addWeighted(layer, 0.85, image, 0.15, 0)
 
 
-def compose(rng: np.random.Generator, icon: np.ndarray, size: int = WORK_SIZE) -> np.ndarray:
-    """uint8 RGB (size x size): icon over a random in-game style background."""
+def compose(rng: np.random.Generator, icon: np.ndarray, size: int = WORK_SIZE,
+            framed_probability: float = FRAMED_PROBABILITY) -> np.ndarray:
+    """uint8 RGB (size x size): icon over a random in-game style background.
+
+    `framed_probability` is the share of samples drawn with the photographed, black-bordered diamond."""
     background = make_background(rng, size)
-    if rng.random() < FRAMED_PROBABILITY:
+    if rng.random() < framed_probability:
         colour, alpha = _place_icon(rng, icon, size, FRAMED_SCALE_RANGE)
         image = draw_framed(rng, background, colour, alpha)
         return np.clip(image, 0, 255).astype(np.uint8)

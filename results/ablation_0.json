@@ -1,0 +1,78 @@
+{
+  "summary": {
+    "crops": 5,
+    "top1": 0.2,
+    "top1Wilson95": [
+      0.03622316096978745,
+      0.6244717358814613
+    ],
+    "top3": 0.6,
+    "top3Wilson95": [
+      0.23071993220883708,
+      0.8823817688407467
+    ],
+    "meanPCorrect": 0.08782971915788948
+  },
+  "records": [
+    {
+      "expected": "boon_shadow_step",
+      "top3": [
+        "__background__",
+        "conviction",
+        "chemical_trap"
+      ],
+      "pCorrect": 0.016620686277747154,
+      "top1Hit": false,
+      "top3Hit": false,
+      "file": "03274782-F5FF-43DB-92AF-9530613DF7E0_0.jpg"
+    },
+    {
+      "expected": "decisive_strike",
+      "top3": [
+        "__background__",
+        "decisive_strike",
+        "eyes_of_belmont"
+      ],
+      "pCorrect": 0.05993352830410004,
+      "top1Hit": false,
+      "top3Hit": true,
+      "file": "BA3088FF-3369-4A43-A468-D731C7343EA4_0.jpg"
+    },
+    {
+      "expected": "diversion",
+      "top3": [
+        "__background__",
+        "flashbang",
+        "flow_state"
+      ],
+      "pCorrect": 0.0017589388880878687,
+      "top1Hit": false,
+      "top3Hit": false,
+      "file": "97A3B456-F045-4B0F-B0DF-1CD47110CB17_0.jpg"
+    },
+    {
+      "expected": "plot_twist",
+      "top3": [
+        "__background__",
+        "plot_twist",
+        "weave_attunement"
+      ],
+      "pCorrect": 0.029987463727593422,
+      "top1Hit": false,
+      "top3Hit": true,
+      "file": "7684EBCA-208D-4493-969C-08494A10F0E7_0.jpg"
+    },
+    {
+      "expected": "windows_of_opportunity",
+      "top3": [
+        "windows_of_opportunity",
+        "unbound",
+        "__background__"
+      ],
+      "pCorrect": 0.33084797859191895,
+      "top1Hit": true,
+      "top3Hit": true,
+      "file": "F24D4301-1751-4004-A170-402E56229AEF_0.jpg"
+    }
+  ]
+}
